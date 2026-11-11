@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Engine Tuning Shop | Dashboard</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark">ET</div>
+    <div>
+      <p class="eyebrow">ENGINE TUNING SHOP</p>
+      <h1>Workshop dashboard</h1>
+    </div>
+    <span class="status-pill"><span class="status-dot"></span> Local system</span>
+  </header>
+
+  <main class="page">
+    <section class="intro">
+      <div>
+        <p class="eyebrow">OVERVIEW</p>
+        <h2>Keep the workshop moving.</h2>
+        <p class="muted">A simple view of your customers, jobs, and vehicle information.</p>
+      </div>
+
+      <div>
+        <a href="/customers.html" class="button button-secondary">
+          Manage Customers
+        </a>
+
+        <button class="button button-secondary" id="refresh-button" type="button">
+          Refresh data
+        </button>
+      </div>
+    </section>
+
+    <section class="stats-grid" aria-label="Workshop totals">
+      <article class="stat-card">
+        <span class="stat-label">Customers</span>
+        <strong id="customer-count">—</strong>
+        <span class="stat-note">Records in your database</span>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Tuning jobs</span>
+        <strong id="job-count">—</strong>
+        <span class="stat-note">Jobs listed by the server</span>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">In progress</span>
+        <strong id="progress-count">—</strong>
+        <span class="stat-note">Jobs currently being worked on</span>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">WEEK 16 · THIRD-PARTY API</p>
+          <h2>Vehicle lookup</h2>
+          <p class="muted">Enter a 17-character VIN to request vehicle details from the NHTSA vPIC API.</p>
+        </div>
+        <span class="api-badge">External data</span>
+      </div>
+      <form id="vehicle-form" class="lookup-form">
+        <label for="vin-input">Vehicle Identification Number (VIN)</label>
+        <div class="lookup-row">
+          <input id="vin-input" name="vin" autocomplete="off" maxlength="17"
+                 placeholder="Example: 1HGCM82633A004352" required>
+          <button class="button button-primary" id="lookup-button" type="submit">Look up vehicle</button>
+        </div>
+        <p class="helper">VINs are usually 17 characters. Vehicle data coverage varies, especially for vehicles outside the US market.</p>
+      </form>
+      <div id="vehicle-message" class="message" role="status" aria-live="polite" hidden></div>
+      <div id="vehicle-result" class="vehicle-result" hidden></div>
+      <aside class="tip">
+        <strong>Workshop tip</strong>
+        <span>Confirm the vehicle's exact engine and configuration before recommending tuning parts or changes. A VIN lookup is a starting point, not a substitute for inspection.</span>
+      </aside>
+    </section>
+
+    
+    <section class="panel weather-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">LIVE WEATHER</p>
+          <h2>Workshop Weather</h2>
+          <p class="muted" id="weather-location">Loading location...</p>
+        </div>
+        <span class="api-badge">Weather API</span>
+      </div>
+
+      <div id="weather-message" class="message"
+          role="status" aria-live="polite" hidden></div>
+
+      <div id="weather-result" hidden>
+        <div class="weather-main">
+          <img id="weather-icon" src="" alt="Weather condition"
+              width="80" height="80">
+          <div>
+            <h2 id="weather-temperature">--°C</h2>
+            <p id="weather-condition">Loading weather...</p>
+          </div>
+        </div>
+
+        <div class="weather-details">
+          <div>
+            <span>Humidity</span>
+            <strong id="weather-humidity">--%</strong>
+          </div>
+          <div>
+            <span>Wind</span>
+            <strong id="weather-wind">-- km/h</strong>
+          </div>
+        </div>
+
+        <aside class="tip">
+          <strong>Workshop tip</strong>
+          <span id="weather-tip">
+            Checking today's weather...
+          </span>
+        </aside>
+      </div>
+
+      <button class="button button-secondary"
+              id="weather-refresh" type="button">
+        Refresh weather
+      </button>
+    </section>
+
+    
+    <div class="content-grid">
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">CUSTOMER RECORDS</p>
+            <h2>Customers</h2>
+          </div>
+          <span class="count-badge" id="customers-badge">0 records</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Customer</th><th>Vehicle</th><th>Plate number</th><th>Phone</th></tr></thead>
+            <tbody id="customers-table">
+              <tr><td colspan="4" class="empty-cell">Loading customers…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">Customer records are read from your existing SQLite-backed API.</p>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">WORKSHOP QUEUE</p>
+            <h2>Tuning jobs</h2>
+          </div>
+          <span class="count-badge" id="jobs-badge">0 jobs</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Customer</th><th>Service</th><th>Cost</th><th>Status</th></tr></thead>
+            <tbody id="jobs-table">
+              <tr><td colspan="4" class="empty-cell">Loading tuning jobs…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">This page currently displays records; it does not create or edit them.</p>
+      </section>
+    </div>
+
+    <div id="page-message" class="page-message" role="status" aria-live="polite"></div>
+    <footer>Engine Tuning Shop · Week 16 API integration prototype</footer>
+  </main>
+</body>
+</html>

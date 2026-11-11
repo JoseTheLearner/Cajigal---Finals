@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engine Tuning Shop | Customer Management</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 16px;
+            background: #f3f4f6;
+            color: #1f2937;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        input {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        input:focus {
+            outline: 2px solid #93c5fd;
+            border-color: #2563eb;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .secondary {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .edit {
+            background: #f59e0b;
+            color: #111827;
+            margin: 2px;
+        }
+
+        .delete {
+            background: #dc2626;
+            color: white;
+            margin: 2px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        th, td {
+            padding: 13px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        th {
+            background: #f9fafb;
+        }
+
+        .message {
+            display: none;
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 6px;
+        }
+
+        .message.success {
+            display: block;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .message.error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .empty {
+            text-align: center;
+            color: #6b7280;
+            padding: 25px;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-button {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 11px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .dashboard-button:hover {
+            background: #1d4ed8;
+        }
+
+        .count {
+            color: #6b7280;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+
+        <!-- Page heading and Dashboard button -->
+        <div class="top-bar">
+            <div>
+                <h1>Customer Management</h1>
+                <p class="subtitle">
+                    Engine Tuning Shop — Add, view, edit, and delete customers.
+                </p>
+            </div>
+
+            <a href="/dashboard.html" class="dashboard-button">
+                ← Back to Dashboard
+            </a>
+        </div>
+
+        <div id="message" class="message" role="status" aria-live="polite"></div>
+
+        <section class="card">
+            <h2 id="formTitle">Add New Customer</h2>
+
+            <form id="customerForm">
+                <div class="form-grid">
+                    <div>
+                        <label for="name">Full Name</label>
+                        <input id="name" name="name" required maxlength="100">
+                    </div>
+
+                    <div>
+                        <label for="phone">Phone Number</label>
+                        <input id="phone" name="phone" type="tel" required maxlength="30">
+                    </div>
+
+                    <div>
+                        <label for="vehicle_model">Vehicle Model</label>
+                        <input id="vehicle_model" name="vehicle_model" required maxlength="100">
+                    </div>
+
+                    <div>
+                        <label for="plate_number">Plate Number</label>
+                        <input id="plate_number" name="plate_number" required maxlength="30">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="primary" id="saveButton">
+                        Add Customer
+                    </button>
+
+                    <button type="button" class="secondary" id="cancelButton" hidden>
+                        Cancel Edit
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="card">
+            <div class="top-bar">
+                <h2>Customer List</h2>
+                <button type="button" class="secondary" id="refreshButton">
+                    Refresh List
+                </button>
+            </div>
+
+            <p class="count" id="customerCount">Loading customers...</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Vehicle</th>
+                            <th>Plate Number</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="customerTable">
+                        <tr>
+                            <td colspan="6" class="empty">Loading customers...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const API_URL = '/api/customers';
+
+        const form = document.getElementById('customerForm');
+        const table = document.getElementById('customerTable');
+        const message = document.getElementById('message');
+        const formTitle = document.getElementById('formTitle');
+        const saveButton = document.getElementById('saveButton');
+        const cancelButton = document.getElementById('cancelButton');
+        const customerCount = document.getElementById('customerCount');
+
+        let editingId = null;
+        let customers = [];
+        let messageTimer;
+
+        function getToken() {
+            return localStorage.getItem('token');
+        }
+
+        async function apiRequest(url, options = {}) {
+            const headers = {
+                ...(options.headers || {})
+            };
+
+            if (options.body) {
+                headers['Content-Type'] = 'application/json';
+            }
+
+            const token = getToken();
+
+            if (token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+
+            const response = await fetch(url, {
+                ...options,
+                headers
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                if (response.status === 401 && token) {
+                    localStorage.removeItem('token');
+                }
+
+                throw new Error(data.error || `Request failed (${response.status})`);
+            }
+
+            return data;
+        }
+
+        function showMessage(text, type = 'success') {
+            clearTimeout(messageTimer);
+
+            message.textContent = text;
+            message.className = `message ${type}`;
+
+            messageTimer = setTimeout(() => {
+                message.className = 'message';
+                message.textContent = '';
+            }, 5000);
+        }
+
+        function makeCell(value) {
+            const cell = document.createElement('td');
+            cell.textContent = value ?? '';
+            return cell;
+        }
+
+        async function loadCustomers() {
+            table.innerHTML = `
+                <tr>
+                    <td colspan="6" class="empty">Loading customers...</td>
+                </tr>
+            `;
+
+            try {
+                customers = await apiRequest(API_URL);
+
+                customerCount.textContent =
+                    `${customers.length} customer(s) found`;
+
+                table.replaceChildren();
+
+                if (customers.length === 0) {
+                    table.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="empty">
+                                No customers yet. Add your first customer above.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                for (const customer of customers) {
+                    const row = document.createElement('tr');
+
+                    row.appendChild(makeCell(customer.id));
+                    row.appendChild(makeCell(customer.name));
+                    row.appendChild(makeCell(customer.phone));
+                    row.appendChild(makeCell(customer.vehicle_model));
+                    row.appendChild(makeCell(customer.plate_number));
+
+                    const actions = document.createElement('td');
+
+                    const editButton = document.createElement('button');
+                    editButton.type = 'button';
+                    editButton.className = 'edit';
+                    editButton.textContent = 'Edit';
+                    editButton.addEventListener('click', () => {
+                        startEdit(customer.id);
+                    });
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.type = 'button';
+                    deleteButton.className = 'delete';
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.addEventListener('click', () => {
+                        deleteCustomer(customer.id);
+                    });
+
+                    actions.append(editButton, deleteButton);
+                    row.appendChild(actions);
+                    table.appendChild(row);
+                }
+            } catch (error) {
+                customerCount.textContent = 'Could not load customers';
+
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty">
+                            Could not load customers. Check that the server is running.
+                        </td>
+                    </tr>
+                `;
+
+                showMessage(error.message, 'error');
+            }
+        }
+
+        function startEdit(id) {
+            const customer = customers.find(item => item.id === id);
+
+            if (!customer) {
+                showMessage('Customer not found. Refresh the list.', 'error');
+                return;
+            }
+
+            editingId = id;
+
+            form.elements.name.value = customer.name;
+            form.elements.phone.value = customer.phone;
+            form.elements.vehicle_model.value = customer.vehicle_model;
+            form.elements.plate_number.value = customer.plate_number;
+
+            formTitle.textContent = `Edit Customer #${id}`;
+            saveButton.textContent = 'Save Changes';
+            cancelButton.hidden = false;
+
+            form.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+
+            form.elements.name.focus();
+        }
+
+        function resetForm() {
+            editingId = null;
+            form.reset();
+
+            formTitle.textContent = 'Add New Customer';
+            saveButton.textContent = 'Add Customer';
+            cancelButton.hidden = true;
+        }
+
+        form.addEventListener('submit', async event => {
+            event.preventDefault();
+
+            const customer = {
+                name: form.elements.name.value.trim(),
+                phone: form.elements.phone.value.trim(),
+                vehicle_model: form.elements.vehicle_model.value.trim(),
+                plate_number: form.elements.plate_number.value.trim()
+            };
+
+            if (Object.values(customer).some(value => !value)) {
+                showMessage('Please fill in all customer fields.', 'error');
+                return;
+            }
+
+            const isEditing = editingId !== null;
+            const url = isEditing
+                ? `${API_URL}/${editingId}`
+                : API_URL;
+
+            saveButton.disabled = true;
+
+            try {
+                await apiRequest(url, {
+                    method: isEditing ? 'PUT' : 'POST',
+                    body: JSON.stringify(customer)
+                });
+
+                resetForm();
+
+                showMessage(
+                    isEditing
+                        ? 'Customer updated successfully.'
+                        : 'Customer added successfully.'
+                );
+
+                await loadCustomers();
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
+                saveButton.disabled = false;
+            }
+        });
+
+        async function deleteCustomer(id) {
+            const customer = customers.find(item => item.id === id);
+
+            if (!customer) {
+                showMessage('Customer not found. Refresh the list.', 'error');
+                return;
+            }
+
+            const confirmed = confirm(
+                `Delete ${customer.name}?\n\nCustomers with existing tuning jobs cannot be deleted.`
+            );
+
+            if (!confirmed) return;
+
+            try {
+                await apiRequest(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (editingId === id) {
+                    resetForm();
+                }
+
+                showMessage('Customer deleted successfully.');
+                await loadCustomers();
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        }
+
+        cancelButton.addEventListener('click', resetForm);
+
+        document.getElementById('refreshButton')
+            .addEventListener('click', loadCustomers);
+
+        loadCustomers();
+    </script>
+</body>
+</html>
